@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { serializeFeatures } from "@/lib/venueFeatures";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -31,9 +32,28 @@ export async function PUT(request: NextRequest, { params }: Params) {
       name: body.name.trim(),
       address: body.address || null,
       capacity: body.capacity ? Number(body.capacity) : null,
+      cost: body.cost !== undefined && body.cost !== "" ? Number(body.cost) : null,
       costNotes: body.costNotes || null,
+      pitch: body.pitch || null,
+      features: serializeFeatures(body.features || []),
       notes: body.notes || null,
     },
+  });
+
+  return NextResponse.json(venue);
+}
+
+export async function PATCH(request: NextRequest, { params }: Params) {
+  const { id } = await params;
+  const body = await request.json();
+
+  if (typeof body.isFavorite !== "boolean") {
+    return NextResponse.json({ error: "isFavorite must be a boolean" }, { status: 400 });
+  }
+
+  const venue = await prisma.venue.update({
+    where: { id },
+    data: { isFavorite: body.isFavorite },
   });
 
   return NextResponse.json(venue);

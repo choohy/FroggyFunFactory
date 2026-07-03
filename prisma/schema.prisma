@@ -11,15 +11,19 @@ datasource db {
 }
 
 model Venue {
-  id        String    @id @default(cuid())
-  name      String
-  address   String?
-  capacity  Int?
-  costNotes String?
-  notes     String?
-  contacts  Contact[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id         String    @id @default(cuid())
+  name       String
+  address    String?
+  capacity   Int?
+  cost       Float?
+  costNotes  String?
+  pitch      String?
+  features   String?
+  isFavorite Boolean   @default(false)
+  notes      String?
+  contacts   Contact[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 model Vendor {
