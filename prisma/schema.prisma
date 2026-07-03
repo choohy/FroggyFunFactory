@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Venue {
+  id         String    @id @default(cuid())
+  name       String
+  address    String?
+  capacity   Int?
+  cost       Float?
+  costNotes  String?
+  pitch      String?
+  features   String?
+  isFavorite Boolean   @default(false)
+  notes      String?
+  contacts   Contact[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Vendor {
+  id           String    @id @default(cuid())
+  name         String
+  serviceType  String?
+  pricingNotes String?
+  notes        String?
+  contacts     Contact[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  email     String?
+  phone     String?
+  notes     String?
+  venueId   String?
+  venue     Venue?   @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  vendorId  String?
+  vendor    Vendor?  @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
