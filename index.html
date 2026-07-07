@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Froggy Fun Factory</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+
+  <div id="loading-view" class="spinner-wrap">Loading…</div>
+
+  <div id="login-view" class="login-wrap hidden">
+    <div class="login-card">
+      <h1 class="login-title">🐸 Froggy Fun Factory</h1>
+      <form id="login-form" class="form" style="max-width: none;">
+        <div id="login-error" class="error-box hidden"></div>
+        <div class="field">
+          <label class="field-label">Email</label>
+          <input class="input" type="email" id="login-email" required autocomplete="username" />
+        </div>
+        <div class="field">
+          <label class="field-label">Password</label>
+          <input class="input" type="password" id="login-password" required autocomplete="current-password" />
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary" id="login-submit" style="width:100%;">Log in</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="app-shell" class="hidden">
+    <header class="app-header">
+      <div class="header-inner">
+        <a href="#/" class="brand">🐸 Froggy Fun Factory</a>
+        <nav class="main-nav" id="main-nav">
+          <a href="#/" data-route="/">Dashboard</a>
+          <a href="#/contacts" data-route="/contacts">Contacts</a>
+          <a href="#/venues" data-route="/venues">Venues</a>
+          <a href="#/vendors" data-route="/vendors">Vendors</a>
+        </nav>
+        <div class="header-actions">
+          <span class="user-email" id="user-email"></span>
+          <button class="btn btn-secondary" id="export-btn" title="Download all data as JSON">Export data</button>
+          <button class="btn btn-secondary" id="logout-btn">Log out</button>
+        </div>
+      </div>
+    </header>
+    <main class="app-main" id="app-view"></main>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

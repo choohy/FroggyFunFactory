@@ -1,5 +1,12 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# Froggy Fun Factory
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+Plain HTML/CSS/JS app (no build step, no framework) backed by Firebase
+(Firestore + Authentication). Deployed as a static site via GitHub Pages.
+
+- `index.html` — page shell (login screen, nav, view container)
+- `app.js` — all logic: Firebase init, auth, hash-based router, Firestore
+  CRUD, view rendering
+- `styles.css` — all styling
+
+There is no `npm install` / build step — open `index.html` directly (ideally
+via a local static server, e.g. VS Code's Live Server) to run it.
