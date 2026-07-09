@@ -1,0 +1,42 @@
+// TEST-ONLY rules for the Firebase Local Emulator Suite (used by
+// `npm run emulators` / `npm run test:e2e`). Structurally identical to
+// firestore.rules, but with a fixed test email allowed so Playwright can
+// sign in deterministically. NEVER deploy this file to a real Firebase
+// project — see firebase.test.json, which is the only config that
+// references it.
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAllowedUser() {
+      return request.auth != null &&
+        request.auth.token.email in [
+          "allowed-test-user@example.com"
+        ];
+    }
+
+    function hasName() {
+      return request.resource.data.name is string &&
+        request.resource.data.name.size() > 0;
+    }
+
+    match /venues/{venueId} {
+      allow read: if isAllowedUser();
+      allow create, update: if isAllowedUser() && hasName();
+      allow delete: if isAllowedUser();
+    }
+
+    match /vendors/{vendorId} {
+      allow read: if isAllowedUser();
+      allow create, update: if isAllowedUser() && hasName();
+      allow delete: if isAllowedUser();
+    }
+
+    match /contacts/{contactId} {
+      allow read: if isAllowedUser();
+      allow create, update: if isAllowedUser() && hasName();
+      allow delete: if isAllowedUser();
+    }
+  }
+}

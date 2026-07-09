@@ -2,35 +2,42 @@
   "name": "froggyfunfactory",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "postinstall": "prisma generate",
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --port 4300 --strictPort",
+    "lint": "eslint .",
+    "typecheck": "tsc -b --noEmit",
+    "emulators": "firebase emulators:start --only auth,firestore",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:reset-db": "rm -f prisma/test.db prisma/test.db-journal && npx prisma migrate deploy",
-    "test:e2e:server": "npm run test:e2e:reset-db && next build && next start -p 3100"
+    "test:e2e:emulators": "firebase emulators:start --only auth,firestore --config firebase.test.json --project demo-froggyfunfactory",
+    "test:e2e:build": "VITE_USE_FIREBASE_EMULATOR=true VITE_FIREBASE_PROJECT_ID=demo-froggyfunfactory VITE_TEST_ALLOWED_EMAIL=allowed-test-user@example.com VITE_BASE_PATH=/ vite build --outDir dist-test",
+    "test:e2e:preview": "vite preview --outDir dist-test --port 4300 --strictPort"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.8.0",
-    "@prisma/client": "^7.8.0",
-    "better-sqlite3": "^12.11.1",
-    "next": "16.2.10",
-    "prisma": "^7.8.0",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "firebase": "^12.4.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.9.6"
   },
   "devDependencies": {
+    "@eslint/js": "^9",
     "@playwright/test": "^1.61.1",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/vite": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.0.5",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-plugin-react-hooks": "^5",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "firebase-tools": "^14.19.1",
+    "globals": "^16",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8",
+    "vite": "^7.1.14"
   }
 }

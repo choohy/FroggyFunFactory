@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Keep this list identical to ALLOWED_EMAILS in src/lib/allowlist.ts.
+    // That file only controls what the UI *shows*; THIS is what actually
+    // enforces who can read or write data. Anyone not signed in with one
+    // of these emails is denied by Firestore itself, regardless of what
+    // the client sends.
+    function isAllowedUser() {
+      return request.auth != null &&
+        request.auth.token.email in [
+          // "you@example.com",
+        ];
+    }
+
+    function hasName() {
+      return request.resource.data.name is string &&
+        request.resource.data.name.size() > 0;
+    }
+
+    match /venues/{venueId} {
+      allow read: if isAllowedUser();
+      allow create, update: if isAllowedUser() && hasName();
+      allow delete: if isAllowedUser();
+    }
+
+    match /vendors/{vendorId} {
+      allow read: if isAllowedUser();
+      allow create, update: if isAllowedUser() && hasName();
+      allow delete: if isAllowedUser();
+    }
+
+    match /contacts/{contactId} {
+      allow read: if isAllowedUser();
+      allow create, update: if isAllowedUser() && hasName();
+      allow delete: if isAllowedUser();
+    }
+
+    // Everything else is denied by default (Firestore rules deny any path
+    // with no matching rule), including any collection added later that
+    // isn't explicitly listed above.
+  }
+}

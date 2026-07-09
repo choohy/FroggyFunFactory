@@ -1,37 +1,34 @@
-"use client";
-
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { setVenueFavorite } from "@/lib/venues";
 
 export default function FavoriteButton({
   venueId,
   initialFavorite,
   size = "md",
+  onChange,
 }: {
   venueId: string;
   initialFavorite: boolean;
   size?: "sm" | "md";
+  onChange?: (next: boolean) => void;
 }) {
-  const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
 
   async function toggle(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     const next = !isFavorite;
     setIsFavorite(next);
+    setIsPending(true);
 
     try {
-      const res = await fetch(`/api/venues/${venueId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isFavorite: next }),
-      });
-      if (!res.ok) throw new Error("Failed to update favorite");
-      startTransition(() => router.refresh());
+      await setVenueFavorite(venueId, next);
+      onChange?.(next);
     } catch {
       setIsFavorite(!next);
+    } finally {
+      setIsPending(false);
     }
   }
 
@@ -40,7 +37,7 @@ export default function FavoriteButton({
   return (
     <button
       type="button"
-      onClick={toggle}
+      onClick={(e) => void toggle(e)}
       disabled={isPending}
       aria-pressed={isFavorite}
       aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}

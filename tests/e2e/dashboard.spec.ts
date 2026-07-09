@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import { createContactViaUI, uniqueName } from "./helpers";
+import { test, expect } from "./fixtures";
+import { createContactViaUI, uniqueName } from "./helpers/data";
 
 test.describe("Dashboard and navigation", () => {
   test("dashboard links navigate to each section", async ({ page }) => {
@@ -7,16 +7,16 @@ test.describe("Dashboard and navigation", () => {
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 
     await page.getByRole("link", { name: "Contacts" }).first().click();
-    await expect(page).toHaveURL(/\/contacts$/);
+    await expect(page).toHaveURL(/\/#\/contacts$/);
 
     await page.getByRole("link", { name: "Venues" }).first().click();
-    await expect(page).toHaveURL(/\/venues$/);
+    await expect(page).toHaveURL(/\/#\/venues$/);
 
     await page.getByRole("link", { name: "Vendors" }).first().click();
-    await expect(page).toHaveURL(/\/vendors$/);
+    await expect(page).toHaveURL(/\/#\/vendors$/);
 
     await page.getByRole("link", { name: "Dashboard" }).first().click();
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(/\/#\/$/);
   });
 
   test("newly created contact appears in the recently added list", async ({ page }) => {

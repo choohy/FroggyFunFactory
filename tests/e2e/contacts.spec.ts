@@ -1,5 +1,11 @@
-import { test, expect } from "@playwright/test";
-import { createContactViaUI, createVendorViaUI, createVenueViaUI, uniqueName } from "./helpers";
+import { test, expect } from "./fixtures";
+import {
+  createContactViaUI,
+  createVendorViaUI,
+  createVenueViaUI,
+  idFromUrl,
+  uniqueName,
+} from "./helpers/data";
 
 test.describe("Contacts", () => {
   test("can create a standalone contact, edit it, and delete it", async ({ page }) => {
@@ -15,22 +21,22 @@ test.describe("Contacts", () => {
     await expect(page.getByText("Wedding Planner (freelance)")).toBeVisible();
     await expect(page.getByText("alex@chenevents.com")).toBeVisible();
 
-    await page.goto("/contacts");
+    await page.goto("/#/contacts");
     await expect(page.getByRole("link", { name })).toBeVisible();
 
     // Edit
-    await page.goto(`${contactUrl}/edit`);
+    await page.goto(`/#/contacts/${idFromUrl(contactUrl)}/edit`);
     const editedName = `${name} Jr.`;
     await page.getByPlaceholder("e.g. Jamie Rivera").fill(editedName);
     await page.getByRole("button", { name: "Save changes" }).click();
-    await page.waitForURL(contactUrl);
+    await page.waitForURL(new RegExp(idFromUrl(contactUrl) + "$"));
     await expect(page.getByRole("heading", { name: editedName })).toBeVisible();
 
     // Delete
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Delete" }).click();
-    await page.waitForURL("/contacts");
-    await page.goto("/contacts");
+    await page.waitForURL(/\/#\/contacts$/);
+    await page.goto("/#/contacts");
     await expect(page.getByRole("link", { name: editedName })).toHaveCount(0);
   });
 
@@ -39,7 +45,7 @@ test.describe("Contacts", () => {
     const contactName = uniqueName("Jamie Rivera");
 
     const venueUrl = await createVenueViaUI(page, { name: venueName });
-    const venueId = venueUrl.split("/").filter(Boolean).pop()!;
+    const venueId = idFromUrl(venueUrl);
 
     await createContactViaUI(page, {
       name: contactName,
@@ -52,7 +58,7 @@ test.describe("Contacts", () => {
     await expect(page.getByRole("link", { name: contactName })).toBeVisible();
 
     // Contacts list shows the venue link
-    await page.goto("/contacts");
+    await page.goto("/#/contacts");
     const row = page.locator("tr", { hasText: contactName });
     await expect(row.getByRole("link", { name: venueName })).toBeVisible();
   });
@@ -62,7 +68,7 @@ test.describe("Contacts", () => {
     const contactName = uniqueName("Morgan Lee");
 
     const vendorUrl = await createVendorViaUI(page, { name: vendorName });
-    const vendorId = vendorUrl.split("/").filter(Boolean).pop()!;
+    const vendorId = idFromUrl(vendorUrl);
 
     await createContactViaUI(page, {
       name: contactName,
@@ -73,13 +79,8 @@ test.describe("Contacts", () => {
     await page.goto(vendorUrl);
     await expect(page.getByRole("link", { name: contactName })).toBeVisible();
 
-    await page.goto("/contacts");
+    await page.goto("/#/contacts");
     const row = page.locator("tr", { hasText: contactName });
     await expect(row.getByRole("link", { name: vendorName })).toBeVisible();
-  });
-
-  test("rejects creating a contact without a name", async ({ request }) => {
-    const res = await request.post("/api/contacts", { data: { role: "no name here" } });
-    expect(res.status()).toBe(400);
   });
 });

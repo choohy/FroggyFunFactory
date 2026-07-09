@@ -1,28 +1,25 @@
-"use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { buttonDangerClass } from "@/components/ui";
 
 export default function DeleteButton({
-  url,
+  onDelete,
   redirectTo,
   confirmMessage = "Are you sure you want to delete this?",
 }: {
-  url: string;
+  onDelete: () => Promise<void>;
   redirectTo: string;
   confirmMessage?: string;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
     if (!confirm(confirmMessage)) return;
     setDeleting(true);
     try {
-      await fetch(url, { method: "DELETE" });
-      router.push(redirectTo);
-      router.refresh();
+      await onDelete();
+      navigate(redirectTo);
     } finally {
       setDeleting(false);
     }
@@ -31,7 +28,7 @@ export default function DeleteButton({
   return (
     <button
       type="button"
-      onClick={handleDelete}
+      onClick={() => void handleDelete()}
       disabled={deleting}
       className={buttonDangerClass}
     >

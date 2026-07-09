@@ -1,24 +1,13 @@
-"use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import {
   inputClass,
   labelClass,
   buttonPrimaryClass,
   buttonSecondaryClass,
 } from "@/components/ui";
-
-type Contact = {
-  id: string;
-  name: string;
-  role: string | null;
-  email: string | null;
-  phone: string | null;
-  notes: string | null;
-  venueId: string | null;
-  vendorId: string | null;
-};
+import { createContact, updateContact } from "@/lib/contacts";
+import type { Contact } from "@/lib/types";
 
 type Option = { id: string; name: string };
 
@@ -32,10 +21,10 @@ export default function ContactForm({
   contact?: Contact;
   venues: Option[];
   vendors: Option[];
-  defaultVenueId?: string;
-  defaultVendorId?: string;
+  defaultVenueId?: string | null;
+  defaultVendorId?: string | null;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const isEdit = Boolean(contact);
 
   const initialLinkType = contact?.venueId
@@ -62,43 +51,36 @@ export default function ContactForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
 
+    if (!name.trim()) {
+      setError("Name is required");
+      return;
+    }
+
+    setSubmitting(true);
     const payload = {
-      name,
-      role,
-      email,
-      phone,
-      notes,
-      venueId: linkType === "venue" ? venueId : null,
-      vendorId: linkType === "vendor" ? vendorId : null,
+      name: name.trim(),
+      role: role.trim() || null,
+      email: email.trim() || null,
+      phone: phone.trim() || null,
+      notes: notes.trim() || null,
+      venueId: linkType === "venue" ? venueId || null : null,
+      vendorId: linkType === "vendor" ? vendorId || null : null,
     };
-    const url = isEdit ? `/api/contacts/${contact!.id}` : "/api/contacts";
-    const method = isEdit ? "PUT" : "POST";
 
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || "Something went wrong.");
-        return;
-      }
-
-      const saved = await res.json();
-      router.push(`/contacts/${saved.id}`);
-      router.refresh();
+      const id = isEdit ? contact!.id : await createContact(payload);
+      if (isEdit) await updateContact(contact!.id, payload);
+      navigate(`/contacts/${id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-lg">
+    <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4 max-w-lg">
       {error && (
         <p className="text-sm text-red-600 bg-red-50 dark:bg-red-950 rounded-md px-3 py-2">
           {error}
@@ -207,11 +189,7 @@ export default function ContactForm({
         <button type="submit" disabled={submitting} className={buttonPrimaryClass}>
           {submitting ? "Saving..." : isEdit ? "Save changes" : "Create contact"}
         </button>
-        <button
-          type="button"
-          className={buttonSecondaryClass}
-          onClick={() => router.back()}
-        >
+        <button type="button" className={buttonSecondaryClass} onClick={() => navigate(-1)}>
           Cancel
         </button>
       </div>

@@ -13,12 +13,9 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
+# build output
+/dist
+/dist-test
 
 # misc
 .DS_Store
@@ -39,16 +36,16 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
-
-/src/generated/prisma
-
-# sqlite database
-/prisma/*.db
-/prisma/*.db-journal
 
 # playwright
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+/.emulator-data/

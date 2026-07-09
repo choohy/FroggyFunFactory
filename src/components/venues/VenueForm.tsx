@@ -1,29 +1,17 @@
-"use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import {
   inputClass,
   labelClass,
   buttonPrimaryClass,
   buttonSecondaryClass,
 } from "@/components/ui";
-import { VENUE_FEATURES, parseFeatures } from "@/lib/venueFeatures";
-
-type Venue = {
-  id: string;
-  name: string;
-  address: string | null;
-  capacity: number | null;
-  cost: number | null;
-  costNotes: string | null;
-  pitch: string | null;
-  features: string | null;
-  notes: string | null;
-};
+import { VENUE_FEATURES } from "@/lib/venueFeatures";
+import { createVenue, updateVenue } from "@/lib/venues";
+import type { Venue } from "@/lib/types";
 
 export default function VenueForm({ venue }: { venue?: Venue }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const isEdit = Boolean(venue);
   const [name, setName] = useState(venue?.name ?? "");
   const [address, setAddress] = useState(venue?.address ?? "");
@@ -31,7 +19,7 @@ export default function VenueForm({ venue }: { venue?: Venue }) {
   const [cost, setCost] = useState(venue?.cost?.toString() ?? "");
   const [costNotes, setCostNotes] = useState(venue?.costNotes ?? "");
   const [pitch, setPitch] = useState(venue?.pitch ?? "");
-  const [features, setFeatures] = useState<string[]>(parseFeatures(venue?.features));
+  const [features, setFeatures] = useState<string[]>(venue?.features ?? []);
   const [notes, setNotes] = useState(venue?.notes ?? "");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -45,35 +33,37 @@ export default function VenueForm({ venue }: { venue?: Venue }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
 
-    const payload = { name, address, capacity, cost, costNotes, pitch, features, notes };
-    const url = isEdit ? `/api/venues/${venue!.id}` : "/api/venues";
-    const method = isEdit ? "PUT" : "POST";
+    if (!name.trim()) {
+      setError("Name is required");
+      return;
+    }
+
+    setSubmitting(true);
+    const payload = {
+      name: name.trim(),
+      address: address.trim() || null,
+      capacity: capacity ? Number(capacity) : null,
+      cost: cost ? Number(cost) : null,
+      costNotes: costNotes.trim() || null,
+      pitch: pitch.trim() || null,
+      features,
+      notes: notes.trim() || null,
+    };
 
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || "Something went wrong.");
-        return;
-      }
-
-      const saved = await res.json();
-      router.push(`/venues/${saved.id}`);
-      router.refresh();
+      const id = isEdit ? venue!.id : await createVenue(payload);
+      if (isEdit) await updateVenue(venue!.id, payload);
+      navigate(`/venues/${id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-lg">
+    <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4 max-w-lg">
       {error && (
         <p className="text-sm text-red-600 bg-red-50 dark:bg-red-950 rounded-md px-3 py-2">
           {error}
@@ -173,11 +163,7 @@ export default function VenueForm({ venue }: { venue?: Venue }) {
         <button type="submit" disabled={submitting} className={buttonPrimaryClass}>
           {submitting ? "Saving..." : isEdit ? "Save changes" : "Create venue"}
         </button>
-        <button
-          type="button"
-          className={buttonSecondaryClass}
-          onClick={() => router.back()}
-        >
+        <button type="button" className={buttonSecondaryClass} onClick={() => navigate(-1)}>
           Cancel
         </button>
       </div>

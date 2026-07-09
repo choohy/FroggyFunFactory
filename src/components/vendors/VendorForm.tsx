@@ -1,24 +1,16 @@
-"use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import {
   inputClass,
   labelClass,
   buttonPrimaryClass,
   buttonSecondaryClass,
 } from "@/components/ui";
-
-type Vendor = {
-  id: string;
-  name: string;
-  serviceType: string | null;
-  pricingNotes: string | null;
-  notes: string | null;
-};
+import { createVendor, updateVendor } from "@/lib/vendors";
+import type { Vendor } from "@/lib/types";
 
 export default function VendorForm({ vendor }: { vendor?: Vendor }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const isEdit = Boolean(vendor);
   const [name, setName] = useState(vendor?.name ?? "");
   const [serviceType, setServiceType] = useState(vendor?.serviceType ?? "");
@@ -30,35 +22,33 @@ export default function VendorForm({ vendor }: { vendor?: Vendor }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
 
-    const payload = { name, serviceType, pricingNotes, notes };
-    const url = isEdit ? `/api/vendors/${vendor!.id}` : "/api/vendors";
-    const method = isEdit ? "PUT" : "POST";
+    if (!name.trim()) {
+      setError("Name is required");
+      return;
+    }
+
+    setSubmitting(true);
+    const payload = {
+      name: name.trim(),
+      serviceType: serviceType.trim() || null,
+      pricingNotes: pricingNotes.trim() || null,
+      notes: notes.trim() || null,
+    };
 
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || "Something went wrong.");
-        return;
-      }
-
-      const saved = await res.json();
-      router.push(`/vendors/${saved.id}`);
-      router.refresh();
+      const id = isEdit ? vendor!.id : await createVendor(payload);
+      if (isEdit) await updateVendor(vendor!.id, payload);
+      navigate(`/vendors/${id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-lg">
+    <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4 max-w-lg">
       {error && (
         <p className="text-sm text-red-600 bg-red-50 dark:bg-red-950 rounded-md px-3 py-2">
           {error}
@@ -107,11 +97,7 @@ export default function VendorForm({ vendor }: { vendor?: Vendor }) {
         <button type="submit" disabled={submitting} className={buttonPrimaryClass}>
           {submitting ? "Saving..." : isEdit ? "Save changes" : "Create vendor"}
         </button>
-        <button
-          type="button"
-          className={buttonSecondaryClass}
-          onClick={() => router.back()}
-        >
+        <button type="button" className={buttonSecondaryClass} onClick={() => navigate(-1)}>
           Cancel
         </button>
       </div>
